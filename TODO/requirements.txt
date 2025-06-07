@@ -1,0 +1,9 @@
+pydantic-ai-slim[mcp]
+fastmcp
+pydantic
+requests
+datetime
+typing-extensions
+aiohttp
+pandas
+logfire 
