@@ -54,13 +54,15 @@ class ChartRepository:
             RETURNING id, user_id, title, type, data, created_at
         """
         record = await self.connection.fetchrow(query, chart_id, user_id, title, type, data)
-        return Chart(**dict(record))
+        if record is None:
+            raise ValueError("Failed to insert chart record")
+        return Chart(**{k: v for k, v in record.items()})
     
     async def get_by_user_id(self, user_id: UUID) -> List[Chart]:
         """Get all charts for a user"""
         query = "SELECT * FROM charts WHERE user_id = $1 ORDER BY created_at DESC"
         records = await self.connection.fetch(query, user_id)
-        return [Chart(**dict(record)) for record in records]
+        return [Chart(**{k: v for k, v in record.items()}) for record in records]
 
 class ChatHistoryRepository:
     def __init__(self, connection: asyncpg.Connection):
@@ -76,13 +78,15 @@ class ChatHistoryRepository:
             RETURNING id, user_id, message, response, has_chart, chart_id, created_at
         """
         record = await self.connection.fetchrow(query, history_id, user_id, message, response, has_chart, chart_id)
-        return ChatHistory(**dict(record))
+        if record is None:
+            raise ValueError("Failed to insert chat history record")
+        return ChatHistory(**{k: v for k, v in record.items()})
   
     async def get_by_user_id(self, user_id: UUID, limit: int = 50) -> List[ChatHistory]:
         """Get chat history for a user"""
         query = "SELECT * FROM chat_history WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2"
         records = await self.connection.fetch(query, user_id, limit)
-        return [ChatHistory(**dict(record)) for record in records]
+        return [ChatHistory(**{k: v for k, v in record.items()}) for record in records]
     
 
 class TransactionRepository:
@@ -107,13 +111,23 @@ class TransactionRepository:
             query, transaction_id, user_id, symbol, date_time, quantity, trade_price,
             close_price, proceeds, commission_fee, basis, realized_p_l, mtm_p_l, code
         )
-        return Transaction(**dict(record))
+        if record is None:
+            raise ValueError("Failed to insert transaction record")
+        return Transaction(**{k: v for k, v in record.items()})
     
     async def get_by_user_id(self, user_id: UUID) -> List[Transaction]:
         """Get all transactions for a user"""
         query = "SELECT * FROM transactions WHERE user_id = $1 ORDER BY date_time DESC"
         records = await self.connection.fetch(query, user_id)
-        return [Transaction(**dict(record)) for record in records]
+        return [Transaction(**{k: v for k, v in record.items()}) for record in records]
+    
+    async def bulk_insert(self, transactions: List[Dict[str, Any]]) -> List[Transaction]:
+        """Insert multiple transactions at once"""
+        inserted_transactions = []
+        for transaction_data in transactions:
+            transaction = await self.insert(**transaction_data)
+            inserted_transactions.append(transaction)
+        return inserted_transactions
     
 class DatabaseRepository:
     """Main repository class that provides access to all table repositories"""

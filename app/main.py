@@ -1,9 +1,32 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from app.services.agent_service import AgentService
 from app.models.messages import AgentMessage
+from app.api.chat import router as chat_router
 
 app = FastAPI(title="Agent Orchestration API")
+
+# Add CORS middleware
+origins = [
+    "http://localhost:3000",  # React default port
+    "http://localhost:5173",  # Vite default port
+    "http://localhost:8080",  # Common development port
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:8080",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"],
+)
+
+# Include the chat router
+app.include_router(chat_router)
 
 @app.get("/")
 async def root():
@@ -47,7 +70,7 @@ async def test_agent_activation():
         return {
             "success": True,
             "message": f"Received {len(responses)} responses",
-            "responses": [{"content": r.message.content} for r in responses]
+            "responses": [{"content": r.message.content if r.message else "No content"} for r in responses]
         }
     except Exception as e:
         return {
@@ -57,4 +80,4 @@ async def test_agent_activation():
     
 
 if __name__ == "__main__":
-    uvicorn.run("server.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
