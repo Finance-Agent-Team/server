@@ -58,6 +58,14 @@ class ChartRepository:
             raise ValueError("Failed to insert chart record")
         return Chart(**{k: v for k, v in record.items()})
     
+    async def get_by_id(self, chart_id: UUID) -> Optional[Chart]:
+        """Get a chart by its ID"""
+        query = "SELECT * FROM charts WHERE id = $1"
+        record = await self.connection.fetchrow(query, chart_id)
+        if record is None:
+            return None
+        return Chart(**{k: v for k, v in record.items()})
+    
     async def get_by_user_id(self, user_id: UUID) -> List[Chart]:
         """Get all charts for a user"""
         query = "SELECT * FROM charts WHERE user_id = $1 ORDER BY created_at DESC"
