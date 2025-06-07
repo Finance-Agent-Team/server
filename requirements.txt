@@ -9,3 +9,11 @@ tavily-python
 langchain_openai
 asyncpg
 
+# PydanticAI dependencies
+pydantic-ai-slim[anthropic,mcp]
+pydantic-graph
+logfire
+aiohttp
+pandas
+email-validator
+
