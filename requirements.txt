@@ -3,4 +3,9 @@ uvicorn
 pydantic
 python-dotenv
 httpx
+langchain
+openai
+tavily-python
+langchain_openai
 asyncpg
+
